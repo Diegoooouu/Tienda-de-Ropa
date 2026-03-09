@@ -1,34 +1,46 @@
-// No imports needed: web3, anchor, pg and more are globally available
+describe("Tienda de Ropa", () => {
+  it("crear tienda y agregar producto", async () => {
+    // Generar keypair para la nueva tienda
+    const ownerKp = new web3.Keypair();
 
-describe("Test", () => {
-  it("initialize", async () => {
-    // Generate keypair for the new account
-    const newAccountKp = new web3.Keypair();
-
-    // Send transaction
-    const data = new BN(42);
-    const txHash = await pg.program.methods
-      .initialize(data)
-      .accounts({
-        newAccount: newAccountKp.publicKey,
-        signer: pg.wallet.publicKey,
-        systemProgram: web3.SystemProgram.programId,
-      })
-      .signers([newAccountKp])
-      .rpc();
-    console.log(`Use 'solana confirm -v ${txHash}' to see the logs`);
-
-    // Confirm transaction
-    await pg.connection.confirmTransaction(txHash);
-
-    // Fetch the created account
-    const newAccount = await pg.program.account.newAccount.fetch(
-      newAccountKp.publicKey
+    // PDA de la tienda
+    const [tiendaPda] = web3.PublicKey.findProgramAddressSync(
+      [Buffer.from("tienda"), ownerKp.publicKey.toBuffer()],
+      pg.program.programId
     );
 
-    console.log("On-chain data is:", newAccount.data.toString());
+    // Inicializar tienda
+    const txHash = await pg.program.methods
+      .crearTienda("Mi Tienda de Ropa")
+      .accounts({
+        tienda: tiendaPda,
+        owner: ownerKp.publicKey,
+        systemProgram: web3.SystemProgram.programId,
+      })
+      .signers([ownerKp])
+      .rpc();
 
-    // Check whether the data on-chain is equal to local 'data'
-    assert(data.eq(newAccount.data));
+    console.log(`Transacción: ${txHash}`);
+
+    // Confirmar transacción
+    await pg.connection.confirmTransaction(txHash);
+
+    // Agregar producto
+    await pg.program.methods
+      .agregarProducto("Camisa Azul", 50)
+      .accounts({
+        tienda: tiendaPda,
+        owner: ownerKp.publicKey,
+      })
+      .signers([ownerKp])
+      .rpc();
+
+    // Fetch de la cuenta tienda
+    const tienda = await pg.program.account.tienda.fetch(tiendaPda);
+    console.log("Productos registrados:", tienda.productos);
+
+    // Validar que el producto se agregó
+    assert.equal(tienda.productos.length, 1);
+    assert.equal(tienda.productos[0].nombre, "Camisa Azul");
   });
 });
