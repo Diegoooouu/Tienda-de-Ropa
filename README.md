@@ -1,1 +1,5 @@
+Este proyecto es un contrato inteligente en Solana, desarrollado con Anchor, que representa una tienda de ropa. La lógica permite que un propietario cree su tienda, le asigne un nombre y gestione una lista de productos. Cada producto se define con nombre, precio y un estado de disponibilidad que puede alternarse fácilmente.
 
+El contrato incluye funciones para agregar y eliminar productos, así como para consultar la lista completa y contar el total de artículos registrados. Además, se asegura de que solo el propietario de la tienda pueda realizar modificaciones, utilizando validaciones que evitan accesos no autorizados.
+
+En cuanto a la estructura, la tienda guarda la clave pública del dueño, su nombre y un vector de productos. Los productos, por su parte, contienen atributos básicos como nombre, precio y disponibilidad. También se definen códigos de error claros para manejar situaciones comunes, como intentar modificar la tienda sin ser el propietario o eliminar un producto inexistente.
